@@ -15,6 +15,74 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Great+Vibes&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- Script de Cálculo Automático del Embarazo y Frutas -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Referencia base: 11 de Noviembre de 2026 (mes 10 en JavaScript porque empiezan en 0)
+            const baselineDate = new Date(2026, 10, 11);
+            const baselineTotalDays = (23 * 7) + 3; // 23 semanas y 3 días en días totales
+
+            // Fecha actual del dispositivo de quien abre la página
+            const today = new Date();
+            
+            // Calcular diferencia de días entre hoy y el 11 de noviembre de 2026
+            const diffTime = Math.floor((today - baselineDate) / (1000 * 60 * 60 * 24));
+            const currentTotalDays = baselineTotalDays + diffTime;
+
+            // Convertir de nuevo a semanas y días
+            const weeks = Math.floor(currentTotalDays / 7);
+            const days = currentTotalDays % 7;
+
+            // Calcular porcentaje estimado (asumiendo 40 semanas / 280 días totales)
+            const progressPercent = Math.min(Math.round((currentTotalDays / 280) * 100), 100);
+
+            // Textos dinámicos
+            const weekString = `${weeks} Semanas y ${days} Días`;
+            const shortWeekString = `${weeks}w + ${days}d`;
+
+            // Listado de frutas/tamaños aproximados según la semana de gestación
+            const fruitData = getFruitBySize(weeks);
+
+            // Actualizar elementos en la página de forma automática
+            const dynamicWeekText = document.getElementById('dynamicWeekText');
+            if (dynamicWeekText) dynamicWeekText.innerText = weekString;
+
+            const cardWeekBadge = document.getElementById('cardWeekBadge');
+            if (cardWeekBadge) cardWeekBadge.innerText = shortWeekString;
+
+            const pregnancyTitle = document.getElementById('pregnancyTitle');
+            if (pregnancyTitle) pregnancyTitle.innerHTML = `¡${weeks} Semanas y ${days} Días de Amor! 🤰`;
+
+            const percentText = document.getElementById('percentText');
+            if (percentText) percentText.innerText = `~${progressPercent}%`;
+
+            const progressBar = document.getElementById('progressBar');
+            if (progressBar) progressBar.style.width = `${progressPercent}%`;
+
+            // Actualizar sección de la fruta
+            const fruitEmoji = document.getElementById('fruitEmoji');
+            if (fruitEmoji) fruitEmoji.innerText = fruitData.emoji;
+
+            const fruitTitle = document.getElementById('fruitTitle');
+            if (fruitTitle) fruitTitle.innerText = `Tamaño de un(a) ${fruitData.name}`;
+
+            const fruitDescription = document.getElementById('fruitDescription');
+            if (fruitDescription) fruitDescription.innerText = fruitData.desc;
+        });
+
+        // Función para determinar la fruta según la semana
+        function getFruitBySize(week) {
+            if (week <= 12) return { emoji: '🍋', name: 'Limón', desc: 'Tu bebé ya tiene formaditos sus bracitos y piernas, ¡y empieza a hacer sus primeros movimientos!' };
+            if (week <= 16) return { emoji: '🥑', name: 'Aguacate', desc: 'Ya puede percibir la luz a través de tu pancita y escucha los latidos de tu corazón.' };
+            if (week <= 20) return { emoji: '🍌', name: 'Plátano / Banano', desc: '¡Su sentido del gusto se está desarrollando y ya bosta o traga líquido amniótico!' };
+            if (week <= 24) return { emoji: '🥭', name: 'Mango Grande', desc: 'Su carita ya está completamente formada, tiene cejas y pestañas finitas. ¡Se mueve con mucha alegría!' };
+            if (week <= 28) return { emoji: '🥬', name: 'Lechuga', desc: 'Ya abre y cierra sus ojitos, y sueña profundamente mientras duerme en su nidito.' };
+            if (week <= 32) return { emoji: '🥥', name: 'Coco', desc: 'Gana peso rápidamente y su cerebrito está superactivo procesando información.' };
+            if (week <= 36) return { emoji: '🍍', name: 'Piña', desc: 'Está practicando cómo respirar y su piel se vuelve más suavecita.' };
+            return { emoji: '🍉', name: 'Sandía', desc: '¡Ya está completamente lista y hermosa para conocer a sus papás en cualquier momento!' };
+        }
+    </script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -120,7 +188,7 @@
         <!-- HEADER BANNER -->
         <header class="text-center mb-8 relative">
             <div class="inline-block bg-white/70 backdrop-blur-md px-6 py-2 rounded-full shadow-sm border border-pink-100 text-pink-600 font-semibold text-sm mb-4">
-                ✨ ¡Una hermosa princesa viene en camino! • 23 Semanas y 3 Días ✨
+                ✨ ¡Una hermosa princesa viene en camino! • <span id="dynamicWeekText">23 Semanas y 3 Días</span> ✨
             </div>
             <h1 class="text-4xl md:text-6xl font-extrabold text-pink-600 tracking-tight font-sans mb-3">
                 Revelación de Nombre
@@ -160,7 +228,7 @@
                     <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-gradient-to-br from-white via-pink-50 to-purple-50 border-4 border-pink-300 rounded-3xl p-6 md:p-8 flex flex-col items-center justify-between text-center shadow-2xl">
                         <div class="w-full flex justify-between items-center text-pink-400 text-sm font-semibold">
                             <span>🎀 ¡Bienvenida a nuestras vidas! 🎀</span>
-                            <span class="bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-xs">23w + 3d</span>
+                            <span class="bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-xs" id="cardWeekBadge">23w + 3d</span>
                         </div>
 
                         <div class="my-auto">
@@ -226,21 +294,37 @@
             </div>
         </section>
 
-        <!-- SECCIÓN EMBARAZO -->
+        <!-- SECCIÓN EMBARAZO Y FRUTA DE LA SEMANA (DINÁMICA) -->
         <section class="bg-white/80 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-lg border border-pink-100 mb-12">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                 <div>
                     <span class="text-pink-500 font-semibold text-sm uppercase tracking-wider">Etapa del Embarazo</span>
-                    <h3 class="text-2xl font-bold text-gray-800 mt-1">¡23 Semanas y 3 Días de Amor! 🤰</h3>
-                    <p class="text-gray-600 text-sm mt-2 max-w-md">
-                        Nuestra pequeña ya tiene el tamaño de un mango grande, escucha nuestras voces y se mueve con alegría. ¡Cada día falta menos para abrazarla!
+                    <h3 class="text-2xl font-bold text-gray-800 mt-1" id="pregnancyTitle">¡23 Semanas y 3 Días de Amor! 🤰</h3>
+                    <p class="text-gray-600 text-sm mt-2">
+                        Nuestra pequeña se mueve con alegría y escucha nuestras voces todos los días. ¡Cada falta menos para abrazarla!
                     </p>
+                    <div class="mt-4 bg-gradient-to-br from-pink-50 to-purple-50 border border-pink-200 rounded-2xl p-4 text-center">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-gray-500 font-medium">Progreso del embarazo</span>
+                            <span class="text-sm font-bold text-pink-600" id="percentText">~58%</span>
+                        </div>
+                        <div class="w-full bg-pink-200 h-2.5 rounded-full overflow-hidden">
+                            <div class="bg-gradient-to-r from-pink-400 to-rose-500 h-full rounded-full" id="progressBar" style="width: 58%"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-gradient-to-br from-pink-50 to-purple-50 border border-pink-200 rounded-2xl p-5 text-center min-w-[220px]">
-                    <div class="text-3xl font-bold text-pink-600 mb-1">~58%</div>
-                    <div class="text-xs text-gray-500 font-medium mb-3">Del camino recorrido</div>
-                    <div class="w-full bg-pink-200 h-2.5 rounded-full overflow-hidden">
-                        <div class="bg-gradient-to-r from-pink-400 to-rose-500 h-full rounded-full" style="width: 58%"></div>
+
+                <!-- Tarjeta Dinámica de la Fruta -->
+                <div class="bg-gradient-to-br from-pink-50/80 via-rose-50/50 to-purple-50/80 border border-pink-200 rounded-3xl p-6 flex items-center gap-5 shadow-sm">
+                    <div class="text-5xl md:text-6xl bg-white w-20 h-20 rounded-2xl flex items-center justify-center shadow-inner shrink-0" id="fruitEmoji">
+                        🥭
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-pink-500 uppercase tracking-wider">El tamaño de Alondra Salomé</span>
+                        <h4 class="text-lg font-bold text-gray-800 mt-0.5" id="fruitTitle">Tamaño de un Mango Grande</h4>
+                        <p class="text-xs text-gray-600 mt-1 leading-relaxed" id="fruitDescription">
+                            Tu bebé ya tiene formaditos sus bracitos y piernas, ¡y empieza a hacer sus primeros movimientos!
+                        </p>
                     </div>
                 </div>
             </div>
@@ -250,7 +334,7 @@
         <section class="mb-14">
             <div class="text-center mb-6">
                 <h3 class="text-2xl font-bold text-gray-800">Galería de Fotos 🩺</h3>
-                <p class="text-gray-500 text-sm">Los primeros vistazos de nuestra princesa a las 23 semanas y 3 días</p>
+                <p class="text-gray-500 text-sm">Los primeros vistazos de nuestra princesa</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="ecoContainer">
