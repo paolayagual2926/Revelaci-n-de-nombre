@@ -337,8 +337,8 @@
             </div>
         </section>
 
-        <!-- SECCIÓN DE SIGNIFICADO DE LOS NOMBRES (OCULTA HASTA REVELAR) -->
-        <section id="hiddenDetails" class="mb-12 transition-all duration-700 opacity-0 max-h-0 overflow-hidden space-y-6">
+        <!-- SECCIÓN DE SIGNIFICADO DE LOS NOMBRES (TOTALMENTE OCULTA AL INICIO) -->
+        <section id="hiddenDetails" style="display: none;" class="mb-12 transition-all duration-700 opacity-0 space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-md border border-pink-100 flex flex-col justify-between">
                     <div>
@@ -484,9 +484,11 @@
             if (!isRevealed) {
                 isRevealed = true;
                 
-                // Mostrar la sección oculta con animación suave
-                hiddenDetails.style.opacity = '1';
-                hiddenDetails.style.maxHeight = '2000px';
+                // Mostrar la sección oculta y aplicar animación suave
+                hiddenDetails.style.display = 'block';
+                setTimeout(() => {
+                    hiddenDetails.style.opacity = '1';
+                }, 50);
 
                 // Reproducir melodía sutil de cajita de música (Web Audio API)
                 playLullabyMelody();
@@ -500,7 +502,9 @@
             } else {
                 isRevealed = false;
                 hiddenDetails.style.opacity = '0';
-                hiddenDetails.style.maxHeight = '0';
+                setTimeout(() => {
+                    hiddenDetails.style.display = 'none';
+                }, 500);
             }
         }
 
@@ -511,7 +515,6 @@
                 if (!AudioContext) return;
                 const ctx = new AudioContext();
 
-                // Notas de una cajita de música tierna
                 const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 659.25]; 
                 let delay = 0;
 
@@ -526,7 +529,6 @@
                         osc.type = 'sine';
                         osc.frequency.value = freq;
 
-                        // Efecto suave de cajita de música
                         gain.gain.setValueAtTime(0.15, ctx.currentTime);
                         gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.2);
 
