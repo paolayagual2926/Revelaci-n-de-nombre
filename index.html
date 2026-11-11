@@ -15,71 +15,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Great+Vibes&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Firebase SDK Imports & Realtime Config -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <!-- Script de Muro de Deseos Local -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLocalWishes();
+        });
 
-        // Configuración global de Firebase con tus credenciales reales
-        const appId = 'alondra-salome-reveal';
-        const firebaseConfig = {
-            apiKey: "AIzaSyC1XAxtkxLJrkRN2wL3ZApkdQHUctAeQS0",
-            authDomain: "alondra-salome.firebaseapp.com",
-            projectId: "alondra-salome",
-            storageBucket: "alondra-salome.firebasestorage.app",
-            messagingSenderId: "900574599858",
-            appId: "1:900574599858:web:f256e5fa96ddf681db87ab"
-        };
-
-        let app, db, auth;
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-        } catch(e) {
-            console.warn("Firebase initialization error", e);
-        }
-
-        async function initAuthAndData() {
-            if (!auth) {
-                loadLocalFallbackWishes();
-                return;
-            }
-            try {
-                await signInAnonymously(auth);
-                setupRealtimeWishes();
-            } catch(e) {
-                console.warn("Auth fallback triggered", e);
-                loadLocalFallbackWishes();
-            }
-        }
-
-        function setupRealtimeWishes() {
-            if (!db) return;
-            const wishesCol = collection(db, 'artifacts', appId, 'public', 'data', 'wishes');
-            
-            onSnapshot(wishesCol, (snapshot) => {
-                const wishes = [];
-                snapshot.forEach((doc) => {
-                    wishes.push({ id: doc.id, ...doc.data() });
-                });
-
-                wishes.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                renderWishes(wishes);
-            }, (error) => {
-                console.error("Error fetching wishes:", error);
-                loadLocalFallbackWishes();
-            });
-        }
-
-        function loadLocalFallbackWishes() {
-            const saved = localStorage.getItem('local_alondra_wishes');
-            const wishes = saved ? JSON.parse(saved) : [];
-            renderWishes(wishes);
-        }
-
-        window.submitWishToCloud = async function(event) {
+        window.submitWish = function(event) {
             event.preventDefault();
             const nameInput = document.getElementById('wishName');
             const messageInput = document.getElementById('wishMessage');
@@ -98,20 +40,16 @@
             nameInput.value = '';
             messageInput.value = '';
 
-            if (db && auth && auth.currentUser) {
-                try {
-                    const wishesCol = collection(db, 'artifacts', appId, 'public', 'data', 'wishes');
-                    await addDoc(wishesCol, newWish);
-                    return;
-                } catch(e) {
-                    console.error("Error saving to cloud:", e);
-                }
-            }
-
-            const saved = localStorage.getItem('local_alondra_wishes');
+            const saved = localStorage.getItem('alondra_wishes_family');
             const wishes = saved ? JSON.parse(saved) : [];
             wishes.unshift(newWish);
-            localStorage.setItem('local_alondra_wishes', JSON.stringify(wishes));
+            localStorage.setItem('alondra_wishes_family', JSON.stringify(wishes));
+            renderWishes(wishes);
+        }
+
+        function loadLocalWishes() {
+            const saved = localStorage.getItem('alondra_wishes_family');
+            const wishes = saved ? JSON.parse(saved) : [];
             renderWishes(wishes);
         }
 
@@ -121,9 +59,9 @@
 
             if (!wishes || wishes.length === 0) {
                 wishesList.innerHTML = `
-                    <div id="emptyWishState" class="text-center py-8 border-2 border-dashed border-pink-200 rounded-2xl bg-pink-50/40">
+                    <div class="text-center py-8 border-2 border-dashed border-pink-200 rounded-2xl bg-pink-50/40">
                         <i class="fas fa-comment-dots text-pink-300 text-4xl mb-2"></i>
-                        <p class="text-gray-600 font-medium text-sm">Aún nadie ha publicado nada.</p>
+                        <p class="text-gray-600 font-medium text-sm">Aún nadie ha publicado nada en este dispositivo.</p>
                         <p class="text-gray-400 text-xs mt-1">¡Sé el primero en dejarle tu amor y bendiciones a Alondra Salomé y a sus papás!</p>
                     </div>
                 `;
@@ -163,10 +101,6 @@
                 tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
             );
         }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            initAuthAndData();
-        });
     </script>
 
     <script>
@@ -337,7 +271,7 @@
             </div>
         </section>
 
-        <!-- SECCIÓN DE SIGNIFICADO DE LOS NOMBRES (OCULTA CON CLASE HIDDEN) -->
+        <!-- SECCIÓN DE SIGNIFICADO DE LOS NOMBRES (OCULTA HASTA REVELAR) -->
         <section id="hiddenDetails" class="hidden mb-12 transition-all duration-700 opacity-0 space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-md border border-pink-100 flex flex-col justify-between">
@@ -432,7 +366,7 @@
             </div>
         </section>
 
-        <!-- SECCIÓN MURO DE DESEOS EN LA NUBE (TIEMPO REAL) -->
+        <!-- SECCIÓN MURO DE DESEOS -->
         <section class="bg-white/80 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-lg border border-pink-100 mb-12">
             <div class="text-center mb-6">
                 <h3 class="text-2xl font-bold text-gray-800">Muro de Deseos 💌</h3>
@@ -440,7 +374,7 @@
             </div>
 
             <!-- Formulario de Comentarios -->
-            <form id="wishForm" onsubmit="submitWishToCloud(event)" class="space-y-4 mb-8">
+            <form id="wishForm" onsubmit="submitWish(event)" class="space-y-4 mb-8">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input type="text" id="wishName" placeholder="Tu Nombre / Parentesco (Ej. Tía María)" required
                         class="w-full px-4 py-3 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white/50 text-sm">
@@ -454,12 +388,12 @@
                 </div>
             </form>
 
-            <!-- Lista de Deseos en Tiempo Real -->
+            <!-- Lista de Deseos -->
             <div id="wishesList" class="space-y-4">
-                <div id="emptyWishState" class="text-center py-8 border-2 border-dashed border-pink-200 rounded-2xl bg-pink-50/40">
+                <div class="text-center py-8 border-2 border-dashed border-pink-200 rounded-2xl bg-pink-50/40">
                     <i class="fas fa-comment-dots text-pink-300 text-4xl mb-2"></i>
                     <p class="text-gray-600 font-medium text-sm">Aún nadie ha publicado nada.</p>
-                    <p class="text-gray-400 text-xs mt-1">¡Sé el primero en dejarle tu amor y bendiciones a Alondra Salomé y a seus papás!</p>
+                    <p class="text-gray-400 text-xs mt-1">¡Sé el primero en dejarle tu amor y bendiciones a Alondra Salomé y a sus papás!</p>
                 </div>
             </div>
         </section>
@@ -471,7 +405,7 @@
 
     </div>
 
-    <!-- SCRIPT DE INTERACTIVIDAD -->
+    <!-- SCRIPT DE INTERACTIVIDAD DE LA TARJETA -->
     <script>
         let isRevealed = false;
 
@@ -484,13 +418,11 @@
             if (!isRevealed) {
                 isRevealed = true;
                 
-                // Quitar la clase hidden y mostrar con animación
                 hiddenDetails.classList.remove('hidden');
                 setTimeout(() => {
                     hiddenDetails.style.opacity = '1';
                 }, 50);
 
-                // Reproducir melodía sutil de cajita de música (Web Audio API)
                 playLullabyMelody();
 
                 confetti({
@@ -508,7 +440,6 @@
             }
         }
 
-        // Función para reproducir cajita de música mágica
         function playLullabyMelody() {
             try {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -518,7 +449,7 @@
                 const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 659.25]; 
                 let delay = 0;
 
-                notes.forEach((freq, index) => {
+                notes.forEach((freq) => {
                     setTimeout(() => {
                         if (ctx.state === 'suspended') {
                             ctx.resume();
