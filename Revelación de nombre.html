@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Una Dulce Sorpresa! 🌸 Revelación de Nombre</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Great+Vibes&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuración global de Firebase
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'alondra-salome-reveal';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyDummyKeyForLocalPreviewOnly12345",
+            authDomain: "dummy-app.firebaseapp.com",
+            projectId: "dummy-app",
+            storageBucket: "dummy-app.appspot.com",
+            messagingSenderId: "123456789",
+            appId: appId
+        };
+
+        let app, db, auth;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+        } catch(e) {
+            console.warn("Firebase initialization skipped or running in mock mode", e);
+        }
+
+        async function initAuthAndData() {
+            if (!auth) {
+                loadLocalFallbackWishes();
+                return;
+            }
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                setupRealtimeWishes();
+            } catch(e) {
+                console.warn("Auth fallback triggered", e);
+                loadLocalFallbackWishes();
+            }
+        }
+
+        function setupRealtimeWishes() {
+            if (!db) return;
+            const wishesCol = collection(db, 'artifacts', appId, 'public', 'data', 'wishes');
+            
+            onSnapshot(wishesCol, (snapshot) => {
+                const wishes = [];
+                snapshot.forEach((doc) => {
+                    wishes.push({ id: doc.id, ...doc.data() });
+                });
+
+                wishes.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                renderWishes(wishes);
+            }, (error) => {
+                console.error("Error fetching wishes:", error);
+                loadLocalFallbackWishes();
+            });
+        }
+
+        function loadLocalFallbackWishes() {
+            const saved = localStorage.getItem('local_alondra_wishes');
+            const wishes = saved ? JSON.parse(saved) : [];
+            renderWishes(wishes);
+        }
+
+        window.submitWishToCloud = async function(event) {
+            event.preventDefault();
+            const nameInput = document.getElementById('wishName');
+            const messageInput = document.getElementById('wishMessage');
+            
+            const name = nameInput.value.trim();
+            const message = messageInput.value.trim();
+
+            if (!name || !message) return;
+
+            const newWish = {
+                name: name,
+                message: message,
+                createdAt: Date.now()
+            };
+
+            nameInput.value = '';
+            messageInput.value = '';
+
+            if (db && auth && auth.currentUser) {
+                try {
+                    const wishesCol = collection(db, 'artifacts', appId, 'public', 'data', 'wishes');
+                    await addDoc(wishesCol, newWish);
+                    return;
+                } catch(e) {
+                    console.error("Error saving to cloud:", e);
+                }
+            }
+
+            const saved = localStorage.getItem('local_alondra_wishes');
+            const wishes = saved ? JSON.parse(saved) : [];
+            wishes.unshift(newWish);
+            localStorage.setItem('local_alondra_wishes', JSON.stringify(wishes));
+            renderWishes(wishes);
+        }
+
+        function renderWishes(wishes) {
+            const wishesList = document.getElementById('wishesList');
+            if (!wishesList) return;
+
+            if (!wishes || wishes.length === 0) {
+                wishesList.innerHTML = `
+                    <div id="emptyWishState" class="text-center py-8 border-2 border-dashed border-pink-200 rounded-2xl bg-pink-50/40">
+                        <i class="fas fa-comment-dots text-pink-300 text-4xl mb-2"></i>
+                        <p class="text-gray-600 font-medium text-sm">Aún nadie ha publicado nada.</p>
+                        <p class="text-gray-400 text-xs mt-1">¡Sé el primero en dejarle tu amor y bendiciones a Alondra Salomé y a sus papás!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            wishes.forEach(wish => {
+                const timeAgo = formatTimeAgo(wish.createdAt);
+                html += `
+                    <div class="bg-gradient-to-r from-pink-50/70 to-purple-50/70 border border-pink-100 rounded-2xl p-4 shadow-sm">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="font-bold text-gray-800 text-sm"><i class="fas fa-heart text-pink-500 mr-1.5"></i> ${escapeHTML(wish.name || '')}</span>
+                            <span class="text-[10px] text-pink-400 font-medium">${timeAgo}</span>
+                        </div>
+                        <p class="text-gray-600 text-sm pl-5">${escapeHTML(wish.message || '')}</p>
+                    </div>
+                `;
+            });
+            wishesList.innerHTML = html;
+        }
+
+        function formatTimeAgo(timestamp) {
+            if (!timestamp) return 'Hace un momento';
+            const diff = Date.now() - timestamp;
+            const mins = Math.floor(diff / 60000);
+            if (mins < 1) return 'Hace un momento';
+            if (mins < 60) return `Hace ${mins} min`;
+            const hours = Math.floor(mins / 60);
+            if (hours < 24) return `Hace ${hours} h`;
+            const days = Math.floor(hours / 24);
+            return `Hace ${days} d`;
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initAuthAndData();
+        });
+    </script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        babyPink: '#FFE5EC',
+                        softRose: '#FFB3C1',
+                        deepRose: '#FF758F',
+                        goldAccent: '#F3C68F',
+                        pastelLilac: '#E8DEF8',
+                        warmCream: '#FFFDF9'
+                    },
+                    fontFamily: {
+                        script: ['"Great Vibes"', 'cursive'],
+                        handwritten: ['"Caveat"', 'cursive'],
+                        sans: ['"Quicksand"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, #fff5f7 0%, #fae8ff 40%, #fff0f5 70%, #fef3c7 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .floating-element {
+            position: absolute;
+            pointer-events: none;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-16px) rotate(4deg); }
+        }
+
+        .twinkle-star {
+            animation: twinkle 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .pulse-soft {
+            animation: pulseGlow 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px rgba(255,182,193,0.5)); }
+            50% { transform: scale(1.02); filter: drop-shadow(0 0 25px rgba(255,117,143,0.7)); }
+        }
+
+        .sparkle-text {
+            background: linear-gradient(45deg, #d946ef, #ec4899, #f59e0b, #ec4899);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 4s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .flipped {
+            transform: rotateY(180deg);
+        }
+
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FFE5EC;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FFB3C1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="text-gray-700 relative pb-16">
+
+    <!-- Elementos Decorativos Flotantes -->
+    <div class="floating-element top-10 left-6 text-pink-300 opacity-60 text-3xl" style="animation-delay: 0s;"><i class="fas fa-cloud"></i></div>
+    <div class="floating-element top-24 right-10 text-yellow-300 opacity-80 text-2xl twinkle-star" style="animation-delay: 1s;"><i class="fas fa-star"></i></div>
+    <div class="floating-element top-96 left-12 text-purple-300 opacity-50 text-4xl" style="animation-delay: 2s;"><i class="fas fa-heart"></i></div>
+    <div class="floating-element top-2/3 right-8 text-pink-400 opacity-40 text-3xl" style="animation-delay: 1.5s;"><i class="fas fa-baby-carriage"></i></div>
+
+    <div class="max-w-4xl mx-auto px-4 pt-8">
+
+        <!-- HEADER BANNER -->
+        <header class="text-center mb-8 relative">
+            <div class="inline-block bg-white/70 backdrop-blur-md px-6 py-2 rounded-full shadow-sm border border-pink-100 text-pink-600 font-semibold text-sm mb-4">
+                ✨ ¡Una hermosa princesa viene en camino! • 23 Semanas y 3 Días ✨
+            </div>
+            <h1 class="text-4xl md:text-6xl font-extrabold text-pink-600 tracking-tight font-sans mb-3">
+                Revelación de Nombre
+            </h1>
+            <p class="text-gray-600 text-lg md:text-xl font-medium max-w-xl mx-auto">
+                Tenemos un regalo maravilloso guardado en el corazón y queremos compartir nuestra mayor alegría contigo... 💕
+            </p>
+        </header>
+
+        <!-- TARJETA INTERACTIVA DE REVELACIÓN (REVEAL CARD) -->
+        <section class="mb-14">
+            <div class="perspective-1000 max-w-xl mx-auto cursor-pointer" onclick="revealName()">
+                <div id="cardInner" class="transform-style-3d relative w-full h-[380px] md:h-[420px] rounded-3xl shadow-2xl transition-all duration-700">
+                    
+                    <!-- FRENTE DE LA TARJETA (SECRET) -->
+                    <div class="absolute inset-0 w-full h-full backface-hidden bg-white/90 backdrop-blur-xl border-4 border-pink-200 rounded-3xl p-6 md:p-8 flex flex-col items-center justify-between text-center pulse-soft">
+                        <div class="w-full flex justify-between items-center text-pink-300 text-xl">
+                            <i class="fas fa-footprints"></i>
+                            <span class="text-xs uppercase tracking-widest font-bold text-pink-400">Presiona la tarjeta</span>
+                            <i class="fas fa-heart"></i>
+                        </div>
+
+                        <div class="my-auto">
+                            <div class="w-24 h-24 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4 text-pink-500 shadow-inner">
+                                <i class="fas fa-gift text-4xl animate-bounce"></i>
+                            </div>
+                            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">¿Cómo me voy a llamar?</h2>
+                            <p class="text-pink-500 font-medium text-sm md:text-base">Toca la tarjeta para descubrir el nombre de la nueva integrante de la familia 🍼</p>
+                        </div>
+
+                        <button class="bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 flex items-center gap-2">
+                            <i class="fas fa-sparkles"></i> Descubrir Nombre
+                        </button>
+                    </div>
+
+                    <!-- REVERSO DE LA TARJETA (REVEALED NAME) -->
+                    <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-gradient-to-br from-white via-pink-50 to-purple-50 border-4 border-pink-300 rounded-3xl p-6 md:p-8 flex flex-col items-center justify-between text-center shadow-2xl">
+                        <div class="w-full flex justify-between items-center text-pink-400 text-sm font-semibold">
+                            <span>🎀 ¡Bienvenida a nuestras vidas! 🎀</span>
+                            <span class="bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-xs">23w + 3d</span>
+                        </div>
+
+                        <div class="my-auto">
+                            <p class="text-gray-500 font-handwritten text-2xl md:text-3xl mb-1">Ella es nuestra hermosa</p>
+                            <h2 class="text-4xl md:text-6xl font-script font-bold sparkle-text py-2">
+                                Alondra Salomé
+                            </h2>
+                            <p class="text-xl md:text-2xl font-bold text-pink-600 font-sans tracking-wide">
+                                Baptista González
+                            </p>
+                            <div class="mt-4 inline-flex items-center gap-2 bg-pink-100/80 px-4 py-2 rounded-full text-pink-700 font-medium text-sm">
+                                <i class="fas fa-baby text-pink-500"></i> Amada por toda su familia
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-pink-400 font-medium">¡Gracias por ser parte de este momento tan especial! 💕</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN DE SIGNIFICADO DE LOS NOMBRES -->
+        <section class="mb-12 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-md border border-pink-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center font-bold text-lg">
+                            🕊️
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Alondra</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        De origen español y germánico, simboliza a las aves que cantan alegremente al amanecer. Significa <strong>"la que melodiosamente canta a la vida y trae luz y melodía al hogar"</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-md border border-purple-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center font-bold text-lg">
+                            ✨
+                        </div>
+                        <h3 class="text-xl font-bold text-purple-800">Salomé</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        De origen hebreo (derivado de <em>Shalom</em>), significa <strong>"la que trae paz, serenidad y armonía"</strong>. Una niña llena de luz, ternura y bendición para quienes la rodean.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN MENSAJE DE LA FAMILIA -->
+        <section class="bg-gradient-to-r from-pink-100/70 via-rose-50/70 to-purple-100/70 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-md border border-pink-200 mb-12 text-center relative overflow-hidden">
+            <div class="max-w-2xl mx-auto">
+                <span class="text-pink-500 font-handwritten text-3xl font-bold block mb-2">Carta a nuestra princesa</span>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Un Mensaje de Amor de Toda tu Familia 💖</h3>
+                <p class="text-gray-700 text-sm md:text-base leading-relaxed italic mb-4">
+                    "Alondra Salomé, desde que supimos que venías en camino, cada día a las 23 semanas y 3 días de verte crecer en la pancita de tu mami nos llena de una ilusión incalculable. Te esperamos con los brazos abiertos, listos para colmarte de abrazos, risas y todo el amor del mundo. ¡Ya eres el regalo más grande de nuestras vidas!"
+                </p>
+                <div class="text-xs text-pink-600 font-semibold tracking-wider uppercase">
+                    — Con todo el amor de tus Papás, Hermanas y Familia
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN EMBARAZO (23 WEEKS 3 DAYS STATUS) -->
+        <section class="bg-white/80 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-lg border border-pink-100 mb-12">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                    <span class="text-pink-500 font-semibold text-sm uppercase tracking-wider">Etapa del Embarazo</span>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-1">¡23 Semanas y 3 Días de Amor! 🤰</h3>
+                    <p class="text-gray-600 text-sm mt-2 max-w-md">
+                        Nuestra pequeña ya tiene el tamaño de un mango grande, escucha nuestras voces y se mueve con alegría. ¡Cada día falta menos para abrazarla!
+                    </p>
+                </div>
+                <div class="bg-gradient-to-br from-pink-50 to-purple-50 border border-pink-200 rounded-2xl p-5 text-center min-w-[220px]">
+                    <div class="text-3xl font-bold text-pink-600 mb-1">~58%</div>
+                    <div class="text-xs text-gray-500 font-medium mb-3">Del camino recorrido</div>
+                    <div class="w-full bg-pink-200 h-2.5 rounded-full overflow-hidden">
+                        <div class="bg-gradient-to-r from-pink-400 to-rose-500 h-full rounded-full" style="width: 58%"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN GALERÍA DE ECOGRAFÍAS -->
+        <section class="mb-14">
+            <div class="text-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Galería de Fotos 🩺</h3>
+                <p class="text-gray-500 text-sm">Los primeros vistazos de nuestra princesa a las 23 semanas y 3 días</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="ecoContainer">
+                
+                <!-- Eco 1: AQUÍ PUEDES PONER EL ENLACE DE TU FOTO DIRECTAMENTE -->
+                <div class="bg-white p-4 rounded-3xl shadow-md border border-pink-100 flex flex-col items-center">
+                    <div class="w-full h-52 bg-gray-900 rounded-2xl overflow-hidden relative flex items-center justify-center">
+                        <!-- CAMBIA LA URL DE ABAJO ENTRE LAS COMILLAS POR EL ENLACE DE TU FOTO -->
+                        <img src="primer eco.jpeg" alt="Ecografía 1" class="w-full h-full object-cover">
+                    </div>
+                    <span class="mt-3 text-sm font-semibold text-gray-700">Primer Eco</span>
+                </div>
+
+                <!-- Eco 2 -->
+                <div class="bg-white p-4 rounded-3xl shadow-md border border-pink-100 flex flex-col items-center">
+                    <div class="w-full h-52 bg-gray-900 rounded-2xl overflow-hidden relative group flex items-center justify-center">
+                        <img src="Mis papis y yo.jpeg" alt="Ecografía 1" class="w-full h-full object-cover">
+                    </div>
+                    <span class="mt-3 text-sm font-semibold text-gray-700">Mis Papis Y Yo</span>
+                </div>
+
+                <!-- Eco 3 -->
+                <div class="bg-white p-4 rounded-3xl shadow-md border border-pink-100 flex flex-col items-center">
+                    <div class="w-full h-52 bg-gray-900 rounded-2xl overflow-hidden relative group flex items-center justify-center">
+                        <img src="Piecitos a la cabeza.jpeg" alt="Ecografía 1" class="w-full h-full object-cover">
+                    </div>
+                    <span class="mt-3 text-sm font-semibold text-gray-700">Piecitos a la cabeza</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECCIÓN MURO DE DESEOS EN LA NUBE (COMPARTIDO CON LA FAMILIA) -->
+        <section class="bg-white/80 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-lg border border-pink-100 mb-12">
+            <div class="text-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Muro de Deseos 💌</h3>
+                <p class="text-gray-500 text-sm">Deja tu mensaje de amor y bendiciones para Alondra Salomé y sus papás</p>
+            </div>
+
+            <!-- Formulario de Comentarios -->
+            <form id="wishForm" onsubmit="submitWishToCloud(event)" class="space-y-4 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="text" id="wishName" placeholder="Tu Nombre / Parentesco (Ej. Tía María)" required
+                        class="w-full px-4 py-3 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white/50 text-sm">
+                </div>
+                <textarea id="wishMessage" rows="3" placeholder="Escribe tu hermoso mensaje aquí..." required
+                    class="w-full px-4 py-3 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white/50 text-sm resize-none"></textarea>
+                <div class="text-right">
+                    <button type="submit" class="bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold px-6 py-2.5 rounded-xl shadow-md hover:opacity-95 transition text-sm">
+                        <i class="fas fa-paper-plane mr-1"></i> Publicar Mensaje
+                    </button>
+                </div>
+            </form>
+
+            <!-- Lista de Deseos en Tiempo Real -->
+            <div id="wishesList" class="space-y-4">
+                <div id="emptyWishState" class="text-center py-8 border-2 border-dashed border-pink-200 rounded-2xl bg-pink-50/40">
+                    <i class="fas fa-comment-dots text-pink-300 text-4xl mb-2"></i>
+                    <p class="text-gray-600 font-medium text-sm">Aún nadie ha publicado nada.</p>
+                    <p class="text-gray-400 text-xs mt-1">¡Sé el primero en dejarle tu amor y bendiciones a Alondra Salomé y a sus papás!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="text-center text-gray-500 text-xs py-6 border-t border-pink-100">
+            <p>Creado con todo el amor del mundo para <strong>Alondra Salomé Baptista González</strong> 🌸</p>
+        </footer>
+
+    </div>
+
+    <!-- SCRIPT DE INTERACTIVIDAD -->
+    <script>
+        let isRevealed = false;
+
+        function revealName() {
+            const card = document.getElementById('cardInner');
+            card.classList.toggle('flipped');
+            
+            if (!isRevealed) {
+                isRevealed = true;
+                confetti({
+                    particleCount: 120,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: ['#ffb3c1', '#ff758f', '#f3c68f', '#e8def8', '#ffffff']
+                });
+            }
+        }
+
+        function previewImage(event, imgId) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(imgId).src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+</body>
+</html>
