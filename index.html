@@ -15,21 +15,21 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Great+Vibes&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Firebase SDK Imports -->
+    <!-- Firebase SDK Imports & Realtime Config -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuración global de Firebase
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'alondra-salome-reveal';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "AIzaSyDummyKeyForLocalPreviewOnly12345",
-            authDomain: "dummy-app.firebaseapp.com",
-            projectId: "dummy-app",
-            storageBucket: "dummy-app.appspot.com",
-            messagingSenderId: "123456789",
-            appId: appId
+        // Configuración global de Firebase con tus credenciales reales
+        const appId = 'alondra-salome-reveal';
+        const firebaseConfig = {
+            apiKey: "AIzaSyC1XAxtkxLJrkRN2wL3ZApkdQHUctAeQS0",
+            authDomain: "alondra-salome.firebaseapp.com",
+            projectId: "alondra-salome",
+            storageBucket: "alondra-salome.firebasestorage.app",
+            messagingSenderId: "900574599858",
+            appId: "1:900574599858:web:f256e5fa96ddf681db87ab"
         };
 
         let app, db, auth;
@@ -38,7 +38,7 @@
             db = getFirestore(app);
             auth = getAuth(app);
         } catch(e) {
-            console.warn("Firebase initialization skipped or running in mock mode", e);
+            console.warn("Firebase initialization error", e);
         }
 
         async function initAuthAndData() {
@@ -47,11 +47,7 @@
                 return;
             }
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                await signInAnonymously(auth);
                 setupRealtimeWishes();
             } catch(e) {
                 console.warn("Auth fallback triggered", e);
@@ -202,36 +198,29 @@
             min-height: 100vh;
             overflow-x: hidden;
         }
-
         .floating-element {
             position: absolute;
             pointer-events: none;
             animation: float 6s ease-in-out infinite;
         }
-
         @keyframes float {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
             50% { transform: translateY(-16px) rotate(4deg); }
         }
-
         .twinkle-star {
             animation: twinkle 3s ease-in-out infinite alternate;
         }
-
         @keyframes twinkle {
             0% { opacity: 0.3; transform: scale(0.8); }
             100% { opacity: 1; transform: scale(1.2); }
         }
-
         .pulse-soft {
             animation: pulseGlow 2.5s ease-in-out infinite;
         }
-
         @keyframes pulseGlow {
             0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px rgba(255,182,193,0.5)); }
             50% { transform: scale(1.02); filter: drop-shadow(0 0 25px rgba(255,117,143,0.7)); }
         }
-
         .sparkle-text {
             background: linear-gradient(45deg, #d946ef, #ec4899, #f59e0b, #ec4899);
             background-size: 300% 300%;
@@ -239,34 +228,27 @@
             -webkit-text-fill-color: transparent;
             animation: gradientShift 4s ease infinite;
         }
-
         @keyframes gradientShift {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-
         .perspective-1000 {
             perspective: 1000px;
         }
-        
         .transform-style-3d {
             transform-style: preserve-3d;
             transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-
         .flipped {
             transform: rotateY(180deg);
         }
-
         .backface-hidden {
             backface-visibility: hidden;
         }
-
         .rotate-y-180 {
             transform: rotateY(180deg);
         }
-
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -360,9 +342,7 @@
             <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-md border border-pink-100 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center font-bold text-lg">
-                            🕊️
-                        </div>
+                        <div class="w-10 h-10 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center font-bold text-lg">🕊️</div>
                         <h3 class="text-xl font-bold text-gray-800">Alondra</h3>
                     </div>
                     <p class="text-sm text-gray-600 leading-relaxed">
@@ -374,9 +354,7 @@
             <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-md border border-purple-100 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center font-bold text-lg">
-                            ✨
-                        </div>
+                        <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center font-bold text-lg">✨</div>
                         <h3 class="text-xl font-bold text-purple-800">Salomé</h3>
                     </div>
                     <p class="text-sm text-gray-600 leading-relaxed">
@@ -400,7 +378,7 @@
             </div>
         </section>
 
-        <!-- SECCIÓN EMBARAZO (23 WEEKS 3 DAYS STATUS) -->
+        <!-- SECCIÓN EMBARAZO -->
         <section class="bg-white/80 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-lg border border-pink-100 mb-12">
             <div class="flex flex-col md:flex-row items-center justify-between gap-6">
                 <div>
@@ -428,36 +406,31 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="ecoContainer">
-                
-                <!-- Eco 1: AQUÍ PUEDES PONER EL ENLACE DE TU FOTO DIRECTAMENTE -->
+                <!-- Eco 1 -->
                 <div class="bg-white p-4 rounded-3xl shadow-md border border-pink-100 flex flex-col items-center">
                     <div class="w-full h-52 bg-gray-900 rounded-2xl overflow-hidden relative flex items-center justify-center">
-                        <!-- CAMBIA LA URL DE ABAJO ENTRE LAS COMILLAS POR EL ENLACE DE TU FOTO -->
                         <img src="primereco.jpeg" alt="Ecografía 1" class="w-full h-full object-cover">
                     </div>
                     <span class="mt-3 text-sm font-semibold text-gray-700">Primer Eco</span>
                 </div>
-
                 <!-- Eco 2 -->
                 <div class="bg-white p-4 rounded-3xl shadow-md border border-pink-100 flex flex-col items-center">
                     <div class="w-full h-52 bg-gray-900 rounded-2xl overflow-hidden relative group flex items-center justify-center">
-                        <img src="Mis papis y yo.jpeg" alt="Ecografía 1" class="w-full h-full object-cover">
+                        <img src="Mis papis y yo.jpeg" alt="Ecografía 2" class="w-full h-full object-cover">
                     </div>
                     <span class="mt-3 text-sm font-semibold text-gray-700">Mis Papis Y Yo</span>
                 </div>
-
                 <!-- Eco 3 -->
                 <div class="bg-white p-4 rounded-3xl shadow-md border border-pink-100 flex flex-col items-center">
                     <div class="w-full h-52 bg-gray-900 rounded-2xl overflow-hidden relative group flex items-center justify-center">
-                        <img src="Piecitos a la cabeza.jpeg" alt="Ecografía 1" class="w-full h-full object-cover">
+                        <img src="Piecitos a la cabeza.jpeg" alt="Ecografía 3" class="w-full h-full object-cover">
                     </div>
                     <span class="mt-3 text-sm font-semibold text-gray-700">Piecitos a la cabeza</span>
                 </div>
-
             </div>
         </section>
 
-        <!-- SECCIÓN MURO DE DESEOS EN LA NUBE (COMPARTIDO CON LA FAMILIA) -->
+        <!-- SECCIÓN MURO DE DESEOS EN LA NUBE (TIEMPO REAL) -->
         <section class="bg-white/80 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-lg border border-pink-100 mb-12">
             <div class="text-center mb-6">
                 <h3 class="text-2xl font-bold text-gray-800">Muro de Deseos 💌</h3>
@@ -512,17 +485,6 @@
                     origin: { y: 0.6 },
                     colors: ['#ffb3c1', '#ff758f', '#f3c68f', '#e8def8', '#ffffff']
                 });
-            }
-        }
-
-        function previewImage(event, imgId) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById(imgId).src = e.target.result;
-                }
-                reader.readAsDataURL(file);
             }
         }
     </script>
