@@ -337,43 +337,45 @@
             </div>
         </section>
 
-        <!-- SECCIÓN DE SIGNIFICADO DE LOS NOMBRES -->
-        <section class="mb-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-md border border-pink-100 flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center font-bold text-lg">🕊️</div>
-                        <h3 class="text-xl font-bold text-gray-800">Alondra</h3>
+        <!-- SECCIÓN DE SIGNIFICADO DE LOS NOMBRES (OCULTA HASTA REVELAR) -->
+        <section id="hiddenDetails" class="mb-12 transition-all duration-700 opacity-0 max-h-0 overflow-hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-md border border-pink-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center font-bold text-lg">🕊️</div>
+                            <h3 class="text-xl font-bold text-gray-800">Alondra</h3>
+                        </div>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            De origen español y germánico, simboliza a las aves que cantan alegremente al amanecer. Significa <strong>"la que melodiosamente canta a la vida y trae luz y melodía al hogar"</strong>.
+                        </p>
                     </div>
-                    <p class="text-sm text-gray-600 leading-relaxed">
-                        De origen español y germánico, simboliza a las aves que cantan alegremente al amanecer. Significa <strong>"la que melodiosamente canta a la vida y trae luz y melodía al hogar"</strong>.
-                    </p>
+                </div>
+
+                <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-md border border-purple-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center font-bold text-lg">✨</div>
+                            <h3 class="text-xl font-bold text-purple-800">Salomé</h3>
+                        </div>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            De origen hebreo (derivado de <em>Shalom</em>), significa <strong>"la que trae paz, serenidad y armonía"</strong>. Una niña llena de luz, ternura y bendición para quienes la rodean.
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-md border border-purple-100 flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center font-bold text-lg">✨</div>
-                        <h3 class="text-xl font-bold text-purple-800">Salomé</h3>
-                    </div>
-                    <p class="text-sm text-gray-600 leading-relaxed">
-                        De origen hebreo (derivado de <em>Shalom</em>), significa <strong>"la que trae paz, serenidad y armonía"</strong>. Una niña llena de luz, ternura y bendición para quienes la rodean.
+            <!-- SECCIÓN MENSAJE DE LA FAMILIA -->
+            <div class="bg-gradient-to-r from-pink-100/70 via-rose-50/70 to-purple-100/70 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-md border border-pink-200 text-center relative overflow-hidden">
+                <div class="max-w-2xl mx-auto">
+                    <span class="text-pink-500 font-handwritten text-3xl font-bold block mb-2">Carta a nuestra princesa</span>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Un Mensaje de Amor de Toda tu Familia 💖</h3>
+                    <p class="text-gray-700 text-sm md:text-base leading-relaxed italic mb-4">
+                        "Alondra Salomé, desde que supimos que venías en camino, cada día a las 23 semanas y 3 días de verte crecer en la pancita de tu mami nos llena de una ilusión incalculable. Te esperamos con los brazos abiertos, listos para colmarte de abrazos, risas y todo el amor del mundo. ¡Ya eres el regalo más grande de nuestras vidas!"
                     </p>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECCIÓN MENSAJE DE LA FAMILIA -->
-        <section class="bg-gradient-to-r from-pink-100/70 via-rose-50/70 to-purple-100/70 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-md border border-pink-200 mb-12 text-center relative overflow-hidden">
-            <div class="max-w-2xl mx-auto">
-                <span class="text-pink-500 font-handwritten text-3xl font-bold block mb-2">Carta a nuestra princesa</span>
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">Un Mensaje de Amor de Toda tu Familia 💖</h3>
-                <p class="text-gray-700 text-sm md:text-base leading-relaxed italic mb-4">
-                    "Alondra Salomé, desde que supimos que venías en camino, cada día a las 23 semanas y 3 días de verte crecer en la pancita de tu mami nos llena de una ilusión incalculable. Te esperamos con los brazos abiertos, listos para colmarte de abrazos, risas y todo el amor del mundo. ¡Ya eres el regalo más grande de nuestras vidas!"
-                </p>
-                <div class="text-xs text-pink-600 font-semibold tracking-wider uppercase">
-                    — Con todo el amor de tus Papás, Hermanas y Familia
+                    <div class="text-xs text-pink-600 font-semibold tracking-wider uppercase">
+                        — Con todo el amor de tus Papás, Hermanas y Familia
+                    </div>
                 </div>
             </div>
         </section>
@@ -475,16 +477,69 @@
 
         function revealName() {
             const card = document.getElementById('cardInner');
+            const hiddenDetails = document.getElementById('hiddenDetails');
+            
             card.classList.toggle('flipped');
             
             if (!isRevealed) {
                 isRevealed = true;
+                
+                // Mostrar la sección oculta con animación suave
+                hiddenDetails.style.opacity = '1';
+                hiddenDetails.style.maxHeight = '2000px';
+
+                // Reproducir melodía sutil de cajita de música (Web Audio API)
+                playLullabyMelody();
+
                 confetti({
                     particleCount: 120,
                     spread: 80,
                     origin: { y: 0.6 },
                     colors: ['#ffb3c1', '#ff758f', '#f3c68f', '#e8def8', '#ffffff']
                 });
+            } else {
+                isRevealed = false;
+                hiddenDetails.style.opacity = '0';
+                hiddenDetails.style.maxHeight = '0';
+            }
+        }
+
+        // Función para reproducir cajita de música mágica
+        function playLullabyMelody() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+
+                // Notas de una cajita de música tierna
+                const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 659.25]; 
+                let delay = 0;
+
+                notes.forEach((freq, index) => {
+                    setTimeout(() => {
+                        if (ctx.state === 'suspended') {
+                            ctx.resume();
+                        }
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+
+                        osc.type = 'sine';
+                        osc.frequency.value = freq;
+
+                        // Efecto suave de cajita de música
+                        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.2);
+
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+
+                        osc.start();
+                        osc.stop(ctx.currentTime + 1.2);
+                    }, delay);
+                    delay += 300;
+                });
+            } catch (e) {
+                console.log("Audio played silently or blocked", e);
             }
         }
     </script>
