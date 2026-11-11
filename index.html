@@ -15,94 +15,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Great+Vibes&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Script de Muro de Deseos Local -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            loadLocalWishes();
-        });
-
-        window.submitWish = function(event) {
-            event.preventDefault();
-            const nameInput = document.getElementById('wishName');
-            const messageInput = document.getElementById('wishMessage');
-            
-            const name = nameInput.value.trim();
-            const message = messageInput.value.trim();
-
-            if (!name || !message) return;
-
-            const newWish = {
-                name: name,
-                message: message,
-                createdAt: Date.now()
-            };
-
-            nameInput.value = '';
-            messageInput.value = '';
-
-            const saved = localStorage.getItem('alondra_wishes_family');
-            const wishes = saved ? JSON.parse(saved) : [];
-            wishes.unshift(newWish);
-            localStorage.setItem('alondra_wishes_family', JSON.stringify(wishes));
-            renderWishes(wishes);
-        }
-
-        function loadLocalWishes() {
-            const saved = localStorage.getItem('alondra_wishes_family');
-            const wishes = saved ? JSON.parse(saved) : [];
-            renderWishes(wishes);
-        }
-
-        function renderWishes(wishes) {
-            const wishesList = document.getElementById('wishesList');
-            if (!wishesList) return;
-
-            if (!wishes || wishes.length === 0) {
-                wishesList.innerHTML = `
-                    <div class="text-center py-8 border-2 border-dashed border-pink-200 rounded-2xl bg-pink-50/40">
-                        <i class="fas fa-comment-dots text-pink-300 text-4xl mb-2"></i>
-                        <p class="text-gray-600 font-medium text-sm">Aún nadie ha publicado nada en este dispositivo.</p>
-                        <p class="text-gray-400 text-xs mt-1">¡Sé el primero en dejarle tu amor y bendiciones a Alondra Salomé y a sus papás!</p>
-                    </div>
-                `;
-                return;
-            }
-
-            let html = '';
-            wishes.forEach(wish => {
-                const timeAgo = formatTimeAgo(wish.createdAt);
-                html += `
-                    <div class="bg-gradient-to-r from-pink-50/70 to-purple-50/70 border border-pink-100 rounded-2xl p-4 shadow-sm">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="font-bold text-gray-800 text-sm"><i class="fas fa-heart text-pink-500 mr-1.5"></i> ${escapeHTML(wish.name || '')}</span>
-                            <span class="text-[10px] text-pink-400 font-medium">${timeAgo}</span>
-                        </div>
-                        <p class="text-gray-600 text-sm pl-5">${escapeHTML(wish.message || '')}</p>
-                    </div>
-                `;
-            });
-            wishesList.innerHTML = html;
-        }
-
-        function formatTimeAgo(timestamp) {
-            if (!timestamp) return 'Hace un momento';
-            const diff = Date.now() - timestamp;
-            const mins = Math.floor(diff / 60000);
-            if (mins < 1) return 'Hace un momento';
-            if (mins < 60) return `Hace ${mins} min`;
-            const hours = Math.floor(mins / 60);
-            if (hours < 24) return `Hace ${hours} h`;
-            const days = Math.floor(hours / 24);
-            return `Hace ${days} d`;
-        }
-
-        function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-            );
-        }
-    </script>
-
     <script>
         tailwind.config = {
             theme: {
@@ -362,38 +274,6 @@
                         <img src="Piecitos a la cabeza.jpeg" alt="Ecografía 3" class="w-full h-full object-cover">
                     </div>
                     <span class="mt-3 text-sm font-semibold text-gray-700">Piecitos a la cabeza</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECCIÓN MURO DE DESEOS -->
-        <section class="bg-white/80 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-lg border border-pink-100 mb-12">
-            <div class="text-center mb-6">
-                <h3 class="text-2xl font-bold text-gray-800">Muro de Deseos 💌</h3>
-                <p class="text-gray-500 text-sm">Deja tu mensaje de amor y bendiciones para Alondra Salomé y sus papás</p>
-            </div>
-
-            <!-- Formulario de Comentarios -->
-            <form id="wishForm" onsubmit="submitWish(event)" class="space-y-4 mb-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="text" id="wishName" placeholder="Tu Nombre / Parentesco (Ej. Tía María)" required
-                        class="w-full px-4 py-3 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white/50 text-sm">
-                </div>
-                <textarea id="wishMessage" rows="3" placeholder="Escribe tu hermoso mensaje aquí..." required
-                    class="w-full px-4 py-3 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white/50 text-sm resize-none"></textarea>
-                <div class="text-right">
-                    <button type="submit" class="bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold px-6 py-2.5 rounded-xl shadow-md hover:opacity-95 transition text-sm">
-                        <i class="fas fa-paper-plane mr-1"></i> Publicar Mensaje
-                    </button>
-                </div>
-            </form>
-
-            <!-- Lista de Deseos -->
-            <div id="wishesList" class="space-y-4">
-                <div class="text-center py-8 border-2 border-dashed border-pink-200 rounded-2xl bg-pink-50/40">
-                    <i class="fas fa-comment-dots text-pink-300 text-4xl mb-2"></i>
-                    <p class="text-gray-600 font-medium text-sm">Aún nadie ha publicado nada.</p>
-                    <p class="text-gray-400 text-xs mt-1">¡Sé el primero en dejarle tu amor y bendiciones a Alondra Salomé y a sus papás!</p>
                 </div>
             </div>
         </section>
