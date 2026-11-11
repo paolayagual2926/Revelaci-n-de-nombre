@@ -337,8 +337,8 @@
             </div>
         </section>
 
-        <!-- SECCIÓN DE SIGNIFICADO DE LOS NOMBRES (TOTALMENTE OCULTA AL INICIO) -->
-        <section id="hiddenDetails" style="display: none;" class="mb-12 transition-all duration-700 opacity-0 space-y-6">
+        <!-- SECCIÓN DE SIGNIFICADO DE LOS NOMBRES (OCULTA CON CLASE HIDDEN) -->
+        <section id="hiddenDetails" class="hidden mb-12 transition-all duration-700 opacity-0 space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-md border border-pink-100 flex flex-col justify-between">
                     <div>
@@ -459,7 +459,7 @@
                 <div id="emptyWishState" class="text-center py-8 border-2 border-dashed border-pink-200 rounded-2xl bg-pink-50/40">
                     <i class="fas fa-comment-dots text-pink-300 text-4xl mb-2"></i>
                     <p class="text-gray-600 font-medium text-sm">Aún nadie ha publicado nada.</p>
-                    <p class="text-gray-400 text-xs mt-1">¡Sé el primero en dejarle tu amor y bendiciones a Alondra Salomé y a sus papás!</p>
+                    <p class="text-gray-400 text-xs mt-1">¡Sé el primero en dejarle tu amor y bendiciones a Alondra Salomé y a seus papás!</p>
                 </div>
             </div>
         </section>
@@ -484,8 +484,8 @@
             if (!isRevealed) {
                 isRevealed = true;
                 
-                // Mostrar la sección oculta y aplicar animación suave
-                hiddenDetails.style.display = 'block';
+                // Quitar la clase hidden y mostrar con animación
+                hiddenDetails.classList.remove('hidden');
                 setTimeout(() => {
                     hiddenDetails.style.opacity = '1';
                 }, 50);
@@ -503,7 +503,7 @@
                 isRevealed = false;
                 hiddenDetails.style.opacity = '0';
                 setTimeout(() => {
-                    hiddenDetails.style.display = 'none';
+                    hiddenDetails.classList.add('hidden');
                 }, 500);
             }
         }
